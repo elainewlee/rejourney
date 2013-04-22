@@ -1,3 +1,8 @@
+
+env
+
+
+#Default Android ignores
 # built application files
 *.apk
 *.ap_
