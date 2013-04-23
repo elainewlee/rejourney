@@ -6,30 +6,57 @@
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         <title>ReJourney!</title>
+        <link rel="stylesheet"  href="css/jquery.mobile-1.3.1.min.css">
         <script type="text/javascript" src="../www/cordova-2.6.0.js"></script>
         <script type="text/javascript" src="../www/js/jquery-2.0.0.js"></script>
-        <script type="text/javascript" src="../www/js/jquery.mobile-1.3.1.min.js"></script>
 
-        <script type="text/javascript" src="../www/js/tracker.js"></script>
-        <script type="text/javascript" src="../www/js/form_submit.js"></script>
-        <script type="text/javascript" src="../www/js/jquery.rating.js"></script>
+        <script type="text/javascript" src="../www/js/json2.js"></script>
+        <script type="text/javascript" src="../www/js/jquery.mobile-1.3.1.min.js"></script>
     </head>
     <body>
-        <div class="app">
+        <!--<div class="app">
             <h1>Apache Cordova</h1>
             <div id="deviceready" class="blink">
                 <p class="event listening">Connecting to Device</p>
                 <p class="event received">Device is Ready</p>
             </div>
         </div>
-        <script type="text/javascript" src="cordova-2.6.0.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript">
             app.initialize();
-        </script>
+        </script>-->
+
+
+<!-- Start of Home page -->
+<div data-role="page" id="home">
+
+    <div data-role="header">
+
+        <h1>Home</h1>
+
+        <div data-role="navbar">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home">Home</a></li>
+                <!--li><a href="#startTracking" data-transition="none" data-icon="plus">Track Workout</a></li>
+                <li><a href="#history" data-transition="none" data-icon="star">History</a></li-->
+            </ul>
+        </div>
+    </div>
+
+    <div data-role="content">
+        <p>Welcome to the <em>ReJourney</em> app. By clicking <em>Take Photo</em> when prompted, you will record your geolocation using the GPS feature on your phone while taking the photo.</p>
+
+        <button id="home_network_button" data-icon="check">Internet Access Enabled</button>
+        <button id="home_clearstorage_button">Clear local storage</button>
+        <!--button id="home_seedgps_button">Load Seed GPS Data</button-->
+    </div>
+
+
+</div>
+<!-- End of Home page -->
 
 <!-- Start of Return GPS Location page -->
-<div data-role="page" id="gps">
+<!-- <div data-role="page" id="gps">
   <div data-role="header">
     <h1>Get GPS Location and Time</h1>
   </div>
@@ -37,12 +64,12 @@
   <div data-role="content" >
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjbiIHbdcgSvaC-HawOeifxIg-Bx-6xbk&sensor=false">
     </script>
-    <button data-role="button" type="button" data-theme="e" id="get_gps">Where are you right now?</button>
+    <button data-role="button" type="button" data-theme="e" id="get_gps">Where are you right now?</button> -->
     <!--button data-role="button" type="button" data-theme="b" id="end_logging">Stop Loggin'</button-->
-    <div id="map_canvas" style="margin-left:auto;margin-right:auto;width:75%;height:300px;"></div>
+    <!-- <div id="map_canvas" style="margin-left:auto;margin-right:auto;width:75%;height:300px;"></div>
     <div class="ui-bar ui-bar-e">
       <span id="ELAPSED" style="font-weight:bold;"></span>
-    </div>
+    </div> -->
 
     <!--div data-role="footer">
       <div data-role="navbar">
@@ -55,8 +82,8 @@
       </div>
 
     </div-->
-  </div>
-</div>
+  <!-- </div>
+</div> -->
 <!-- End of Return GPS Location page -->
 
 

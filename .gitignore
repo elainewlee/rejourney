@@ -1,5 +1,16 @@
 
 env
+.DS_Store
+.settings/
+AndroidManifest.xml
+ant.properties
+build.xml
+cordova/
+libs/
+proguard-project.txt
+project.properties
+res/
+src/
 
 
 #Default Android ignores

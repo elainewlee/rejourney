@@ -26,7 +26,14 @@ var app = {
     // Bind any events that are required on startup. Common events are:
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
+        // document.addEventListener('deviceready', this.onDeviceReady, false);
+        document.addEventListener("deviceready", function(){
+            if(navigator.network.connection.type == Connection.NONE){
+                $("#home_network_button").text('No Internet Access')
+                        .attr("data-icon", "delete")
+                        .button('refresh');
+            }
+        });
     },
     // deviceready Event Handler
     //
