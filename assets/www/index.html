@@ -31,17 +31,16 @@
 <div data-role="page" id="home">
 
     <div data-role="header">
-
         <h1>Home</h1>
-
-        <div data-role="navbar">
+        <div data-role="navbar" data-grid="c">
             <ul>
-                <li><a href="#home" data-transition="none" data-icon="home">Home</a></li>
-                <!--li><a href="#startTracking" data-transition="none" data-icon="plus">Track Workout</a></li>
-                <li><a href="#history" data-transition="none" data-icon="star">History</a></li-->
+                <li><a href="#home" data-transition="none" data-icon="home" data-inline="true">Home</a></li>
+                <li><a href="#takePhoto" data-transition="none" data-icon="plus" data-inline="true">Take Photo</a></li>
+                <li><a href="#history" data-transition="none" data-icon="info" data-inline="true">History</a></li>
+                <li><a href="#rejourney" data-transition="none" data-icon="star" data-inline="true">ReJourney!</a></li>
             </ul>
-        </div>
-    </div>
+        </div><!--close navbar-->
+    </div><!--close header-->
 
     <div data-role="content">
         <p>Welcome to the <em>ReJourney</em> app. By clicking <em>Take Photo</em> when prompted, you will record your geolocation using the GPS feature on your phone while taking the photo.</p>
@@ -86,6 +85,79 @@
 </div> -->
 <!-- End of Return GPS Location page -->
 
+<!-- Start of Take Photo page -->
+<div data-role="page" id="takePhoto">
+
+    <div data-role="header">
+        <h1>Take Photo</h1>
+        <div data-role="navbar" data-grid="c">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home" data-inline="true">Home</a></li>
+                <li><a href="#takePhoto" data-transition="none" data-icon="plus" data-inline="true">Take Photo</a></li>
+                <li><a href="#history" data-transition="none" data-icon="info" data-inline="true">History</a></li>
+                <li><a href="#rejourney" data-transition="none" data-icon="star" data-inline="true">ReJourney!</a></li>
+            </ul>
+        </div><!--close navbar-->
+    </div><!--close header-->
+
+
+    <div data-role="content">
+        <p id="takePhoto_status"></p>
+            <div data-role="fieldcontain" class="ui-hide-label">
+                <label for="photo_id">Photo ID/Name:</label>
+                <input type="text" name="photo_id" id="photo_id" placeholder="Photo ID/Name"/>
+            </div>
+        <button data-role="button" id="takePhoto">Take Photo</button>
+        <!-- <button data-role="button" id="startTracking_stop">Stop Tracking</button> -->
+
+        <p id="takePhoto_info"></p>
+    </div>
+</div>
+<!-- End of Take Photo page -->
+
+<!-- Start of the History page -->
+<div data-role="page" id="history">
+
+    <div data-role="header">
+        <h1>History</h1>
+        <div data-role="navbar" data-grid="c">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home" data-inline="true">Home</a></li>
+                <li><a href="#takePhoto" data-transition="none" data-icon="plus" data-inline="true">Take Photo</a></li>
+                <li><a href="#history" data-transition="none" data-icon="info" data-inline="true">History</a></li>
+                <li><a href="#rejourney" data-transition="none" data-icon="star" data-inline="true">ReJourney!</a></li>
+            </ul>
+        </div><!--close navbar-->
+    </div><!--close header-->
+    <div data-role="content">
+        <p id="photos_recorded"></p>
+        <ul data-role="listview" id="history_photolist">
+        </ul>
+    </div>
+</div>
+<!-- End of the History page -->
+
+<!-- Start of the ReJourney page -->
+<div data-role="page" id="rejourney">
+
+    <div data-role="header">
+        <h1>ReJourney!</h1>
+        <div data-role="navbar" data-grid="c">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home" data-inline="true">Home</a></li>
+                <li><a href="#takePhoto" data-transition="none" data-icon="plus" data-inline="true">Take Photo</a></li>
+                <li><a href="#history" data-transition="none" data-icon="info" data-inline="true">History</a></li>
+                <li><a href="#rejourney" data-transition="none" data-icon="star" data-inline="true">ReJourney!</a></li>
+            </ul>
+        </div><!--close navbar-->
+    </div><!--close header-->
+    <div data-role="content">
+       <!--  <p id="photos_recorded"></p>
+        <ul data-role="listview" id="history_photolist">
+        </ul> -->
+    </div>
+</div>
+<!-- End of the ReJourney page -->
 
     </body>
 </html>
