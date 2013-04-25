@@ -47,43 +47,12 @@
 
         <button id="home_network_button" data-icon="check">Internet Access Enabled</button>
         <button id="home_clearstorage_button">Clear local storage</button>
-        <!--button id="home_seedgps_button">Load Seed GPS Data</button-->
+        <button id="home_seedgps_button">Load Seed GPS Data</button>
     </div>
 
 
 </div>
 <!-- End of Home page -->
-
-<!-- Start of Return GPS Location page -->
-<!-- <div data-role="page" id="gps">
-  <div data-role="header">
-    <h1>Get GPS Location and Time</h1>
-  </div>
-
-  <div data-role="content" >
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjbiIHbdcgSvaC-HawOeifxIg-Bx-6xbk&sensor=false">
-    </script>
-    <button data-role="button" type="button" data-theme="e" id="get_gps">Where are you right now?</button> -->
-    <!--button data-role="button" type="button" data-theme="b" id="end_logging">Stop Loggin'</button-->
-    <!-- <div id="map_canvas" style="margin-left:auto;margin-right:auto;width:75%;height:300px;"></div>
-    <div class="ui-bar ui-bar-e">
-      <span id="ELAPSED" style="font-weight:bold;"></span>
-    </div> -->
-
-    <!--div data-role="footer">
-      <div data-role="navbar">
-        <ul>
-          <li><a id ='poop'>Poop</a></li>
-          <li><a id="pee">Pee</a></li>
-          <li><a id="friend">Friend</a></li>
-          <li><a id="frenemy">Frenemy</a></li>
-        </ul>
-      </div>
-
-    </div-->
-  <!-- </div>
-</div> -->
-<!-- End of Return GPS Location page -->
 
 <!-- Start of Take Photo page -->
 <div data-role="page" id="takePhoto">
@@ -107,8 +76,9 @@
                 <label for="photo_id">Photo ID/Name:</label>
                 <input type="text" name="photo_id" id="photo_id" placeholder="Photo ID/Name"/>
             </div>
-        <button data-role="button" id="takePhoto">Take Photo</button>
-        <!-- <button data-role="button" id="startTracking_stop">Stop Tracking</button> -->
+        <button data-role="button" id="startJourney">Start Journey</button>
+        <button data-role="button" id="stopJourney">Stop Journey</button>
+        <button data-role="button" id="stopJourney" data-icon="star" data-iconpos="top">Take Photo</button>
 
         <p id="takePhoto_info"></p>
     </div>
@@ -130,12 +100,37 @@
         </div><!--close navbar-->
     </div><!--close header-->
     <div data-role="content">
-        <p id="photos_recorded"></p>
-        <ul data-role="listview" id="history_photolist">
+        <p id="journeys_recorded"></p>
+        <ul data-role="listview" id="history_journeylist">
         </ul>
     </div>
 </div>
 <!-- End of the History page -->
+
+<!-- Journey Info page -->
+<div data-role="page" id="journey_info">
+
+    <div data-role="header">
+        <h1>Viewing Single Journey</h1>
+        <div data-role="navbar" data-grid="c">
+            <ul>
+                <li><a href="#home" data-transition="none" data-icon="home" data-inline="true">Home</a></li>
+                <li><a href="#takePhoto" data-transition="none" data-icon="plus" data-inline="true">Take Photo</a></li>
+                <li><a href="#history" data-transition="none" data-icon="info" data-inline="true">History</a></li>
+                <li><a href="#rejourney" data-transition="none" data-icon="star" data-inline="true">ReJourney!</a></li>
+            </ul>
+        </div><!--close navbar-->
+    </div><!--close header-->
+
+    <div data-role="content">
+        <p id="journey_info_info"></p>
+
+        <div id="map_canvas" style="position:absolute;bottom:0;left:0;width:100%;height:300px;"></div>
+
+    </div>
+
+
+</div><!-- /page -->
 
 <!-- Start of the ReJourney page -->
 <div data-role="page" id="rejourney">
