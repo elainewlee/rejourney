@@ -10,7 +10,7 @@
 /************************************************* INIT ****************************************************************/
 
 
-var current_journey = 0;      //Keep track of the last journey in all_journeys
+// var current_journey = 0;      //Keep track of the last journey in all_journeys
 var watch_id = null;    // ID of the geolocation
 var photoLocation_id = null; //ID of location the ohto was taken
 var journeyTracking_data = []; // Array containing GPS position objects for journey
@@ -25,8 +25,8 @@ document.addEventListener("deviceready", function(){
 								 .button('refresh');
 	}
     window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail); //Check if the user will allow you to access filesystem
-    db = window.openDatabase("rejourneyDatabase", "1.0", "rejourneyDatabase", 200000);
-    // db.transaction(populateDB, errorCB, successCB); //Only run this db transaction line when changing DB schema
+    db = window.openDatabase("rejourneyDatabase", "1.0", "rejourneyDatabase", 200000); //This method will create a new SQL Lite Database and return a Database object.
+    populateDB(); //Create the database if it doesn't exist.
     // alert("deviceready");
 });
 
@@ -62,6 +62,9 @@ function readAsJSON(file) {
     reader.readAsText(file);
 }
 
+function executeSQLFile(file) {
+    var
+}
 function writeJourneys(){
     window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem) {
         fileSystem.root.getFile("all_journeys.json", {create: true, exclusive: false}, createWriter, fail);
@@ -84,12 +87,32 @@ function fail(error) {
     console.log(error.code);
 }
 
-function populateDB(tx) {
-     tx.executeSql('DROP TABLE IF EXISTS Journey');
-     tx.executeSql('CREATE TABLE IF NOT EXISTS Journey (journey_id unique, start_time)');
-     // tx.executeSql('INSERT INTO Journey (journey_id, start_time) VALUES ("journey 1", ' + Date.now() + ')');
-     // tx.executeSql('INSERT INTO Journey (journey_id, start_time) VALUES ("journey 2", ' + Date.now() + ')');
+//******************************************************************Database Persistence ******************************************************************
+//******************************************************************Database Persistence ******************************************************************
+//******************************************************************Database Persistence ******************************************************************
+//******************************************************************Database Persistence ******************************************************************
+
+//Populate database functions
+function populateDB() {
+    db.transaction(function(transaction){
+        readSQL('schema.sql', transaction)
+    }, errorCB, successCB);
 }
+
+function getCurrentJourney(callback){
+    db.transaction(function(transaction){
+            transaction.executeSql('SELECT * FROM Journeys WHERE end IS NULL', [], function(transaction, results){  //The anonymous function doesn't run until after the .executeSql is done running.
+                var current_journey = results.rows[0]; //Assign asynchronously, the first journey found in the database that doesn't have and end to current_journey. DOES NOT RETURN current_journey!
+                callback(current_journey); //This is the call of the function that makes it run
+            }, errorCB); // Find Journeys that have started but not ended
+        }, errorCB, successCB);
+    }
+}
+
+function addPhotoToDB(journey_id, photo_uri, position) {
+    //TODO: Implement
+}
+
 
 function errorCB(err) {
     alert("Error processing SQL: "+err.code);
@@ -178,6 +201,9 @@ $("#takePhoto").on('click', function() {
     });
     // navigator.geolocation.getCurrentPosition(onGetCurrentPositionSuccess, onError);
 });
+
+
+
 function onCameraSuccess(imageURI) {
     var photo = {
         url: imageURI,
@@ -185,12 +211,22 @@ function onCameraSuccess(imageURI) {
     }
     alert("onCameraSuccess:" + imageURI);
 
-    navigator.geolocation.getCurrentPosition(function(position){
-        photo.position = position;
+    navigator.geolocation.getCurrentPosition(//The function(position) executes is we succeed, function(error) executes if we fail to get the location.
+    function(position){
+        getCurrentJourney(function(cj) { //This instant function defines the callback, which runs after getCurrentJourney is done running.
+            addPhotoToDB(cj.id, imageURI, position) //We can only add a photo to the db if we know which journey we're in.
+            // we know current journey has been set by now. Anything we do in here has knowledge of current_journey
+        });
+    },
+    function(error){
+        getCurrentJourney(function(cj) { //This instant function defines the callback, which runs after getCurrentJourney is done running.
+            addPhotoToDB(cj.id, imageURI, null) //We can only add a photo to the db if we know which journey we're in.
+            // we know current journey has been set by now. Anything we do in here has knowledge of current_journey. Null because we don't know the geolocation.
+        });
     });
-    all_journeys[current_journey].photos.push(photo);
-    writeJourneys();
 };
+
+
 function onError(error) {
     alert('error');
 }
