@@ -3,99 +3,47 @@
 
 // console.log($);
 
-/************************************************* INIT ****************************************************************/
-/************************************************* INIT ****************************************************************/
-/************************************************* INIT ****************************************************************/
-/************************************************* INIT ****************************************************************/
-/************************************************* INIT ****************************************************************/
+function gps_distance(lat1, lon1, lat2, lon2)
+{
+	// http://www.movable-type.co.uk/scripts/latlong.html
+    var R = 6371; // km
+    var dLat = (lat2-lat1) * (Math.PI / 180);
+    var dLon = (lon2-lon1) * (Math.PI / 180);
+    var lat1 = lat1 * (Math.PI / 180);
+    var lat2 = lat2 * (Math.PI / 180);
 
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var d = R * c;
+
+    return d;
+}
 
 document.addEventListener("deviceready", function(){
+
 	if(navigator.network.connection.type == Connection.NONE){
 		$("#home_network_button").text('No Internet Access')
 								 .attr("data-icon", "delete")
 								 .button('refresh');
 	}
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail); //Check if the user will allow you to access filesystem
-    // alert("deviceready");
+    alert("deviceready");
+
 });
 
-var current_journey = 0;      //Keep track of the last journey in all_journeys
-var watch_id = null;    // ID of the geolocation
-var photoLocation_id = null; //ID of location the ohto was taken
-var journeyTracking_data = []; // Array containing GPS position objects for journey
-var photoTracking_data = []; // Array containing GPS position objects for photo. There should only be one location per photo.
-var photoTallyForJourney = null; // Variable counting the number of photos taken on the journey.
-
-
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-
-var all_journeys = [];
-function getFileSystem() {
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail);
-}
-//Fires if we have permissions to access the filesystem
-function readJourneys(fileSystem) {
-    fileSystem.root.getFile("all_journeys.json", null, gotFileEntry, writeJourneys);
-}
-//File exists, now we can process it
-function gotFileEntry(fileEntry) {
-    fileEntry.file(readAsJSON, writeJourneys);
-}
-
-function readAsJSON(file) {
-    var reader = new FileReader();
-    reader.onloadend = function(evt) {
-        all_journeys = JSON.parse(evt.target.result);//
-        if (all_journeys.length != 0) {
-            current_journey = all_journeys.length-1;
-        }
-        console.log('all_journeys loaded');
-    };
-    reader.readAsText(file);
-}
-
-function writeJourneys(){
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem) {
-        fileSystem.root.getFile("all_journeys.json", {create: true, exclusive: false}, createWriter, fail);
-    }, fail);
-}
-
-function createWriter(fileEntry) {
-    fileEntry.createWriter(gotFileWriter, fail);
-}
-
-function gotFileWriter(writer) {
-    writer.onwriteend = function(evt) {
-        console.log('all_journeys.json successfully written');
-        console.log(all_journeys);
-    };
-    writer.write(JSON.stringify(all_journeys));
-}
-
-function fail(error) {
-    console.log(error.code);
-}
-
-/************************************************* END PERSISTANCE ****************************************************************/
-
-
-
-function onNavigationSuccess(position) {
+function onSuccess(position) {
     var myLat = position.coords.latitude;
     var myLong = position.coords.longitude;
     var time = position.timestamp;
     var myLatLng = new google.maps.LatLng(myLat, myLong);
     map.setCenter(myLatLng);
-    all_journeys[current_journey].points.push(myLatLng);
-    all_journeys[current_journey].times.push(time);
+    tracking_data.push(myLatLng);
+    time_val.push(time);
+    last_values = [myLat, myLong];
+    myCoords.push(last_values);
 
     var trackPath = new google.maps.Polyline({
-        path: all_journeys[current_journey].points,
+        path: tracking_data,
         strokeColor: "#FF0000",
         strokeOpacity: 1.0,
         strokeWeight: 2
@@ -107,86 +55,78 @@ function onError(error) {
     alert('error');
 }
 
-
-
+var journey_id = '';      // Name/ID of the exercise
+var watch_id = null;    // ID of the geolocation
+var photoLocation_id = null; //ID of location the ohto was taken
+var x = []; // Array containing GPS position objects for journey
+var photoTracking_data = []; // Array containing GPS position objects for photo. There should only be one location per photo.
+var photoTallyForJourney = null; // Variable counting the number of photos taken on the journey.
 
 $("#startJourney").on('click', function(){
-    current_journey++;
-    var journey_id = $('#journey_id').val(); //from #journeyName_field" of home page
-    //Set up individual journey JSON object
-    all_journeys[current_journey] = {
-        id: journey_id,
-        points: [],
-        photos: []
-    };
-    all_journeys[current_journey].start = Date.now();
-    watchId = navigator.geolocation.watchPosition(onNavigationSuccess, onError, { // Start tracking
+    var start = Date.now();
+    watchId = navigator.geolocation.watchPosition(onSuccess, onError, { // Start tracking
         frequency: 30000,
         enableHighAccuracy: true
     });
     var default_center = new google.maps.LatLng(37.37, 121.92);
+    pretty = null;
+    condition = true;
     var mapOptions = {
         zoom: 15,
         center: default_center,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
+    startTimer(true);
     map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 });
 
 
 $("#stopJourney").on('click', function(){
-    all_journeys[current_journey].end = Date.now();
+    var end = Date.now();
+    var start_time_val = time_val[0];
+    var end_time_val = time_val[time_val.length - 1];
     navigator.geolocation.clearWatch(watchId); // Stop tracking
-    // window.localStorage.setItem(journey_id, JSON.stringify(journeyTracking_data));
-    writeJourneys();// Save the tracking data
+    window.localStorage.setItem(journey_id, JSON.stringify(journeyTracking_data)); // Save the tracking data
+    // condition = false;
+    // total_mi_rounded=walk_distance();
+    // var url = base_url + "/m_save_map";
+    // var obedience_val = 5;
+    // var dog_mood_val = 3;
+    // var pic = "lsjkldf";
+
+    start_time_val = String(start_time_val);
+    end_time_val = String(end_time_val);
+    // var obj = {
+    //     dogwalker_id: dogwalker_id_val,
+    //     obedience_rating: obedience_val,
+    //     dog_mood: dog_mood_val,
+    //     start_time: start_time_val,
+    //     end_time: end_time_val,
+    //     walk_location: tracking_data,
+    //     elapsed_distance: total_mi_rounded,
+    //     elapsed_time: pretty,
+    //     events: event_data,
+    //     walk_pic_url: pic
+    // };
+    // data = JSON.stringify(obj);
+    // // send_map(data,url);
+    // return false;
+
+    // Reset journey variables
+    var watch_id = null;
+    var journeyTracking_data = null;
+    var photoTracking_data = null;
+    var photoTallyForJourney = null;
 });
 
-// console.log($("#takePhoto")); //evaluates to the object itself
+
+
+console.log($("#takePhoto")); //evaluates to the object itself
 $("#takePhoto").on('click', function() {
-    navigator.camera.getPicture(onCameraSuccess, onError, {
-        quality: 50,
-        destinationType: Camera.DestinationType.FILE_URI,
-        saveToPhotoAlbum: true
-    });
-    // navigator.geolocation.getCurrentPosition(onGetCurrentPositionSuccess, onError);
+    navigator.camera.getPicture(oncamerasuccess, );
 });
-function onCameraSuccess(imageURI) {
-    var photo = {
-        url: imageURI,
-        position: null
-    }
-    alert("onCameraSuccess:" + imageURI);
-
-    navigator.geolocation.getCurrentPosition(function(position){
-        photo.position = position;
-    });
-    all_journeys[current_journey].photos.push(photo);
-    writeJourneys();
-};
-function onError(error) {
-    alert('error');
-}
-
-// function onGetCurrentPositionSuccess(position) {
-//     var element = document.getElementById('geolocation');
-//     element.innerHTML = 'Latitude: '           + position.coords.latitude              + '<br />' +
-//                         'Longitude: '          + position.coords.longitude             + '<br />' +
-//                         'Altitude: '           + position.coords.altitude              + '<br />' +
-//                         'Accuracy: '           + position.coords.accuracy              + '<br />' +
-//                         'Altitude Accuracy: '  + position.coords.altitudeAccuracy      + '<br />' +
-//                         'Heading: '            + position.coords.heading               + '<br />' +
-//                         'Speed: '              + position.coords.speed                 + '<br />' +
-//                         'Timestamp: '          +                                   position.timestamp          + '<br />';
-// };
 
 $("#photoPrompt").on('click', function(){ //THIS IS MAJOR PSEUDOCODE
-    navigator.notification.alert(
-    'Take a photo for your journey.', // message
-    okay,                           // callback
-    'ReJourney Photo Prompt',       // title
-    'OK'                            // buttonName
-);
-
     currentLocation = navigator.geolocation.getCurrentPosition(onSuccess, onError, { //
         frequency: 30000,
         enableHighAccuracy: true
@@ -195,7 +135,35 @@ $("#photoPrompt").on('click', function(){ //THIS IS MAJOR PSEUDOCODE
 
 });
 
+// //Truobleshooting
+// console.log($("#takePhoto")); //evaluates to the object itself
+// $("#takePhoto").on('click', function() {
+//     alert("InsideTakePhoto");
+//     camera.getPicture;
 
+    /*photoLocation_id = navigator.geolocation.getCurrentPosition(
+
+        // Success
+        function(position){
+            photoTracking_data.push(position);
+            photoTallyForJourney += 1;
+        },
+
+        // Error
+        function(error){
+            console.log(error);
+        },
+
+        // Settings
+        { frequency: 3000, enableHighAccuracy: true });
+
+    // Tidy up the UI
+    $("#photo_id").val("").show();
+    $("#lat").text (lat);
+    $("#lng").text (lng);
+    $("#takePhoto_status").html("Photo: <strong>" + photo_id + "</strong>"); //$("#startTracking_status").html("Stopped tracking workout: <strong>" + photo_id + "</strong>");
+*/
+});
 
 $("#home_clearstorage_button").on('click', function(){
 	window.localStorage.clear();
@@ -324,20 +292,52 @@ $('#journey_info').on('pageshow', function(){
 });
 
 
+//______________________CODE GRAVEYARD________________________________
 
-function gps_distance(lat1, lon1, lat2, lon2)
-{
-    // http://www.movable-type.co.uk/scripts/latlong.html
-    var R = 6371; // km
-    var dLat = (lat2-lat1) * (Math.PI / 180);
-    var dLon = (lon2-lon1) * (Math.PI / 180);
-    var lat1 = lat1 * (Math.PI / 180);
-    var lat2 = lat2 * (Math.PI / 180);
+// $("#startJourney").on('click', function(){ //$("#startTracking_start").on('click', function(){
 
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    var d = R * c;
+//     // Start tracking the User
+//     watch_id = navigator.geolocation.watchPosition(
 
-    return d;
-}
+//         // Success
+//         function(position){
+//             journeyTracking_data.push(position);
+//         },
+
+//         // Error
+//         function(error){
+//             console.log(error);
+//         },
+
+//         // Settings
+//         { frequency: 3000, enableHighAccuracy: true });
+
+//     // Tidy up the UI
+//     journey_id = $("#journey_id").val();
+
+//     $("#journey_id").hide();
+
+//     $("#takePhoto_status").html("Journey: <strong>" + journey_id + "</strong> started.");
+// });
+
+
+// $("#stopJourney").on('click', function(){ // $("#startTracking_stop").on('click', function(){
+
+//     // Stop tracking the user
+//     navigator.geolocation.clearWatch(watch_id);
+
+//     // Save the tracking data
+//     window.localStorage.setItem(journey_id, JSON.stringify(journeyTracking_data));
+
+//     // Reset journey variables
+//     var watch_id = null;
+//     var journeyTracking_data = null;
+//     var photoTracking_data = null;
+//     var photoTallyForJourney = null;
+
+//     // Tidy up the UI
+//     $("#journey_id").val("").show();
+
+//     $("#takePhoto_status").html("Journey: <strong>" + journey_id + "</strong> stopped. You took <strong>" + photoTallyForJourney + "</strong> photos on this journey."); //$("#startTracking_status").html("Stopped tracking workout: <strong>" + photo_id + "</strong>");
+
+// });
