@@ -10,6 +10,14 @@
 /************************************************* INIT ****************************************************************/
 
 
+var current_journey = 0;      //Keep track of the last journey in all_journeys
+var watch_id = null;    // ID of the geolocation
+var photoLocation_id = null; //ID of location the ohto was taken
+var journeyTracking_data = []; // Array containing GPS position objects for journey
+var photoTracking_data = []; // Array containing GPS position objects for photo. There should only be one location per photo.
+var photoTallyForJourney = null; // Variable counting the number of photos taken on the journey.
+var db = null;
+
 document.addEventListener("deviceready", function(){
 	if(navigator.network.connection.type == Connection.NONE){
 		$("#home_network_button").text('No Internet Access')
@@ -17,15 +25,10 @@ document.addEventListener("deviceready", function(){
 								 .button('refresh');
 	}
     window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail); //Check if the user will allow you to access filesystem
+    db = window.openDatabase("rejourneyDatabase", "1.0", "rejourneyDatabase", 200000);
+    // db.transaction(populateDB, errorCB, successCB); //Only run this db transaction line when changing DB schema
     // alert("deviceready");
 });
-
-var current_journey = 0;      //Keep track of the last journey in all_journeys
-var watch_id = null;    // ID of the geolocation
-var photoLocation_id = null; //ID of location the ohto was taken
-var journeyTracking_data = []; // Array containing GPS position objects for journey
-var photoTracking_data = []; // Array containing GPS position objects for photo. There should only be one location per photo.
-var photoTallyForJourney = null; // Variable counting the number of photos taken on the journey.
 
 
 /************************************************* PERSISTANCE ****************************************************************/
@@ -81,6 +84,24 @@ function fail(error) {
     console.log(error.code);
 }
 
+function populateDB(tx) {
+     tx.executeSql('DROP TABLE IF EXISTS Journey');
+     tx.executeSql('CREATE TABLE IF NOT EXISTS Journey (journey_id unique, start_time)');
+     // tx.executeSql('INSERT INTO Journey (journey_id, start_time) VALUES ("journey 1", ' + Date.now() + ')');
+     // tx.executeSql('INSERT INTO Journey (journey_id, start_time) VALUES ("journey 2", ' + Date.now() + ')');
+}
+
+function errorCB(err) {
+    alert("Error processing SQL: "+err.code);
+}
+
+function successCB() {
+    alert("db success!");
+}
+
+
+
+
 /************************************************* END PERSISTANCE ****************************************************************/
 
 
@@ -113,13 +134,20 @@ function onError(error) {
 $("#startJourney").on('click', function(){
     current_journey++;
     var journey_id = $('#journey_id').val(); //from #journeyName_field" of home page
+    db.transaction(function(tx) {
+        tx.executeSql('INSERT INTO Journey (journey_id, start_time) VALUES ("' + journey_id + '", ' + Date.now() + ')');
+    }, errorCB, successCB); //Only run this db transaction line when changing DB schema
+
+
     //Set up individual journey JSON object
-    all_journeys[current_journey] = {
-        id: journey_id,
-        points: [],
-        photos: []
-    };
-    all_journeys[current_journey].start = Date.now();
+    // current_journey = {
+    //     id: journey_id,
+    //     points: [],
+    //     photos: [],
+    //     start_time: Date.now()
+
+    // };
+    // window.localStorage.setItem(journey_id, current_journey); //Save current journey data as dictionary (key, value) in local storage
     watchId = navigator.geolocation.watchPosition(onNavigationSuccess, onError, { // Start tracking
         frequency: 30000,
         enableHighAccuracy: true
@@ -197,32 +225,49 @@ $("#photoPrompt").on('click', function(){ //THIS IS MAJOR PSEUDOCODE
 
 
 
-$("#home_clearstorage_button").on('click', function(){
-	window.localStorage.clear();
-});
+// $("#home_clearstorage_button").on('click', function(){
+// 	window.localStorage.clear();
+// });
 
-$("#home_seedgps_button").on('click', function(){
-	window.localStorage.setItem('Sample block', '[{"timestamp":1335700802000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700803000,"coords":{"heading":null,"altitude":null,"longitude":170.33481666666665,"accuracy":0,"latitude":-45.87465,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700804000,"coords":{"heading":null,"altitude":null,"longitude":170.33426999999998,"accuracy":0,"latitude":-45.873708333333326,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700805000,"coords":{"heading":null,"altitude":null,"longitude":170.33318333333335,"accuracy":0,"latitude":-45.87178333333333,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700806000,"coords":{"heading":null,"altitude":null,"longitude":170.33416166666666,"accuracy":0,"latitude":-45.871478333333336,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700807000,"coords":{"heading":null,"altitude":null,"longitude":170.33526833333332,"accuracy":0,"latitude":-45.873394999999995,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700808000,"coords":{"heading":null,"altitude":null,"longitude":170.33427333333336,"accuracy":0,"latitude":-45.873711666666665,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700809000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}}]');
+// $("#home_seedgps_button").on('click', function(){
+// 	window.localStorage.setItem('Sample block', '[{"timestamp":1335700802000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700803000,"coords":{"heading":null,"altitude":null,"longitude":170.33481666666665,"accuracy":0,"latitude":-45.87465,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700804000,"coords":{"heading":null,"altitude":null,"longitude":170.33426999999998,"accuracy":0,"latitude":-45.873708333333326,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700805000,"coords":{"heading":null,"altitude":null,"longitude":170.33318333333335,"accuracy":0,"latitude":-45.87178333333333,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700806000,"coords":{"heading":null,"altitude":null,"longitude":170.33416166666666,"accuracy":0,"latitude":-45.871478333333336,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700807000,"coords":{"heading":null,"altitude":null,"longitude":170.33526833333332,"accuracy":0,"latitude":-45.873394999999995,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700808000,"coords":{"heading":null,"altitude":null,"longitude":170.33427333333336,"accuracy":0,"latitude":-45.873711666666665,"speed":null,"altitudeAccuracy":null}},{"timestamp":1335700809000,"coords":{"heading":null,"altitude":null,"longitude":170.33488333333335,"accuracy":0,"latitude":-45.87475166666666,"speed":null,"altitudeAccuracy":null}}]');
 
-});
+// });
 
 // When the user views the history page
 $('#history').on('pageshow', function () {
+    function querySuccess(tx, results) {
+        var qtyJourneys = results.rows.length;
+        // console.log("Journey table: " + len + " rows found.");
+        // var ansStr = "";
+        // for (var i=0; i<len; i++){
+        //     ansStr += "Row = " + i + " Journey = " + results.rows.item(i).journey_id + " Start Time =  " + results.rows.item(i).start_time;
+        // }
+        // alert(ansStr);
+        $("#journeys_recorded").html("<strong>" + qtyJourneys + "</strong> journey(s) recorded");
 
+        // Empty the list of recorded tracks
+        $("#history_journeylist").empty();
+
+        // Iterate over all of the recorded tracks, populating the list
+        for(i=0; i<qtyJourneys; i++){
+            $("#history_journeylist").append("<li><a href='#journey_info' data-ajax='false'>" + results.rows.item(i).journey_id + "</a></li>");
+        }
+
+        // Tell jQueryMobile to refresh the list
+        $("#history_journeylist").listview('refresh');
+    }
+
+    function errorCB(err) {
+        alert("Error processing SQL: "+err.code);
+    }
+
+    db.transaction(function(tx) {
+        tx.executeSql('SELECT * FROM journey', [], querySuccess, errorCB);
+    }, errorCB);
 	// Count the number of entries in localStorage and display this information to the user
-	journeys_recorded = window.localStorage.length;
-	$("#journeys_recorded").html("<strong>" + journeys_recorded + "</strong> journey(s) recorded");
+	// journeys_recorded = window.localStorage.length;
 
-	// Empty the list of recorded tracks
-	$("#history_journeylist").empty();
-
-	// Iterate over all of the recorded tracks, populating the list
-	for(i=0; i<journeys_recorded; i++){
-		$("#history_journeylist").append("<li><a href='#journey_info' data-ajax='false'>" + window.localStorage.key(i) + "</a></li>");
-	}
-
-	// Tell jQueryMobile to refresh the list
-	$("#history_journeylist").listview('refresh');
 
 });
 
