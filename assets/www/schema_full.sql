@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS Tracks (
     FOREIGN KEY(journey_id) REFERENCES Journeys(id), #journey_id INTEGER FOREIGN KEY,
     latitude REAL,
     longitude REAL,
+    altitude REAL,
+    accuracy REAL,
+    altitude_accuracy REAL,
+    heading REAL,
+    speed REAL,
     timestamp INTEGER #TIMESTAMP?
 )
 
@@ -18,6 +23,11 @@ CREATE TABLE IF NOT EXISTS Photos (
     FOREIGN KEY(journey_id) REFERENCES Journeys(id),
     latitude REAL,
     longitude REAL,
+    altitude REAL,
+    accuracy REAL,
+    altitude_accuracy REAL,
+    heading REAL,
+    speed REAL,
     timestamp INTEGER, #TIMESTAMP?
     uri TEXT
 
