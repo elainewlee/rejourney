@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS Journeys (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     start INTEGER,
     end INTEGER
 )
 
 CREATE TABLE IF NOT EXISTS Tracks (
-    id INTEGER PRIMARY KEY,
-    journey_id INTEGER FOREIGN KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    FOREIGN KEY(journey_id) REFERENCES Journeys(id), #journey_id INTEGER FOREIGN KEY,
     latitude REAL,
     longitude REAL,
     altitude REAL,
@@ -15,12 +15,12 @@ CREATE TABLE IF NOT EXISTS Tracks (
     altitude_accuracy REAL,
     heading REAL,
     speed REAL,
-    timestamp INTEGER
+    timestamp INTEGER #TIMESTAMP?
 )
 
 CREATE TABLE IF NOT EXISTS Photos (
-    id INTEGER PRIMARY KEY,
-    journey_id INTEGER FOREIGN KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    FOREIGN KEY(journey_id) REFERENCES Journeys(id),
     latitude REAL,
     longitude REAL,
     altitude REAL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Photos (
     altitude_accuracy REAL,
     heading REAL,
     speed REAL,
-    timestamp INTEGER,
+    timestamp INTEGER, #TIMESTAMP?
     uri TEXT
 
 )

@@ -24,121 +24,17 @@ document.addEventListener("deviceready", function(){
 								 .attr("data-icon", "delete")
 								 .button('refresh');
 	}
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail); //Check if the user will allow you to access filesystem
-    db = window.openDatabase("rejourneyDatabase", "1.0", "rejourneyDatabase", 200000); //This method will create a new SQL Lite Database and return a Database object.
-    populateDB(); //Create the database if it doesn't exist.
-    // alert("deviceready");
+    // window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail); //Check if the user will allow you to access filesystem
+    createDB();
+    getSQLResults();
 });
 
-
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-/************************************************* PERSISTANCE ****************************************************************/
-
-var all_journeys = [];
-function getFileSystem() {
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, readJourneys, fail);
-}
-//Fires if we have permissions to access the filesystem
-function readJourneys(fileSystem) {
-    fileSystem.root.getFile("all_journeys.json", null, gotFileEntry, writeJourneys);
-}
-//File exists, now we can process it
-function gotFileEntry(fileEntry) {
-    fileEntry.file(readAsJSON, writeJourneys);
-}
-
-function readAsJSON(file) {
-    var reader = new FileReader();
-    reader.onloadend = function(evt) {
-        all_journeys = JSON.parse(evt.target.result);//
-        if (all_journeys.length != 0) {
-            current_journey = all_journeys.length-1;
-        }
-        console.log('all_journeys loaded');
-    };
-    reader.readAsText(file);
-}
-
-function executeSQLFile(file) {
-    var
-}
-function writeJourneys(){
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem) {
-        fileSystem.root.getFile("all_journeys.json", {create: true, exclusive: false}, createWriter, fail);
-    }, fail);
-}
-
-function createWriter(fileEntry) {
-    fileEntry.createWriter(gotFileWriter, fail);
-}
-
-function gotFileWriter(writer) {
-    writer.onwriteend = function(evt) {
-        console.log('all_journeys.json successfully written');
-        console.log(all_journeys);
-    };
-    writer.write(JSON.stringify(all_journeys));
-}
-
-function fail(error) {
-    console.log(error.code);
-}
-
-//*********************************************************Database Persistence****************************************************
-//*********************************************************Database Persistence****************************************************
-//*********************************************************Database Persistence****************************************************
-//*********************************************************Database Persistence****************************************************
-//*********************************************************Database Persistence****************************************************
-//*********************************************************Database Persistence****************************************************
-
-//Create database by reading schema.sql file
-function readSQL(fileToRead, transaction) {
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) { //Fires if we have permissions to access the filesystem, creates object
-        fileSystem.root.getFile(fileToRead, null, function (fileEntry) { //getFile is a method that acts on filesystem object to get fileToRead.
-            fileEntry.file(function (file) {  //Method reads file if file exists and passes
-                var reader = new FileReader();  //Converts bytes from memory to unicode string
-                reader.onloadend = function(evt) { //Function that gets called once the reader is done reading
-                    createSQLSchema = evt.target.result; // evt.target.result is the string result of the read file.
-                    transcation.executeSql(createSQLSchema); // The transaction object accepts the SQL string argument and executes it against the database
-                    console.log('Database SQL command sent');
-                };
-                reader.readAsText(file);
-            }, fail);
-        }, fail);
-    }, fail);
-}
-
-//Populate database functions
-function populateDB() {
-    db.transaction(function(transaction){
-        readSQL('schema.sql', transaction)
-    }, errorCB, successCB);
-}
-
-function getCurrentJourney(callback){
-    db.transaction(function(transaction){
-            transaction.executeSql('SELECT * FROM Journeys WHERE end IS NULL', [], function(transaction, results){  //The anonymous function doesn't run until after the .executeSql is done running.
-                var current_journey = results.rows[0]; //Assign asynchronously, the first journey found in the database that doesn't have and end to current_journey. DOES NOT RETURN current_journey!
-                callback(current_journey); //This is the call of the function that makes it run
-            }, errorCB); /
-        }, errorCB, successCB);
+function createDB(){
+    if(!db){
+        db = window.openDatabase("rejourneyDatabase", "1.0", "ReJourneyDB", 200000); //This method will create a new SQL Lite Database and return a Database object.
     }
+    db.transaction(populateDB, errorCB, successCB);
 }
-
-function addPhotoToDB(journey_id, photo_uri, position) {
-    db.transaction(function(transaction){ //The SQL var is in place of populateDB.
-        SQL = 'INSERT INTO Photos (journey_id, latitude, longitude, altitude, accuracy, altitude_accuracy, heading, speed, timestamp, uri)';
-        SQL += "VALUES (" + journey_id + "," + position.latitude + "," + position.longitude + "," + position.accuracy + "," + position.altitude_accuracy + "," + position.heading + "," + position.speed + "," + position.timestamp + "," + photo_uri + ")";
-    }, errorCB, successCB);
-
-function addTrackToDB(journey_id, position) {
-    db.transaction(function(transaction){ //The SQL var is in place of populateDB.
-        SQL = 'INSERT INTO Tracks (journey_id, latitude, longitude, altitude, accuracy, altitude_accuracy, heading, speed, timestamp, uri)';
-        SQL += "VALUES (" + journey_id + "," + position.latitude + "," + position.longitude + "," + position.accuracy + "," + position.altitude_accuracy + "," + position.heading + "," + position.speed + "," + position.timestamp + ")";
-    }, errorCB, successCB);
 
 function errorCB(err) {
     alert("Error processing SQL: "+err.code);
@@ -148,11 +44,86 @@ function successCB() {
     alert("db success!");
 }
 
-/************************************************** END PERSISTANCE ****************************************************************
-/************************************************** END PERSISTANCE ****************************************************************
-/************************************************** END PERSISTANCE ****************************************************************
-/************************************************** END PERSISTANCE ****************************************************************
-/************************************************** END PERSISTANCE ****************************************************************
+//Populate database functions.
+function populateDB(tx) {
+    tx.executeSql('CREATE TABLE IF NOT EXISTS Journeys (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, start INTEGER, end INTEGER)');
+    tx.executeSql('INSERT INTO Journeys(name, start, end) values(?,?,?)', ["erer",1,2]);
+
+    // tx.executeSql('CREATE TABLE ');
+
+// CREATE TABLE IF NOT EXISTS Tracks (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     FOREIGN KEY(journey_id) REFERENCES Journeys(id), #journey_id INTEGER FOREIGN KEY,
+//     latitude REAL,
+//     longitude REAL,
+//     altitude REAL,
+//     accuracy REAL,
+//     altitude_accuracy REAL,
+//     heading REAL,
+//     speed REAL,
+//     timestamp INTEGER #TIMESTAMP?
+// )
+
+// CREATE TABLE IF NOT EXISTS Photos (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     FOREIGN KEY(journey_id) REFERENCES Journeys(id),
+//     latitude REAL,
+//     longitude REAL,
+//     altitude REAL,
+//     accuracy REAL,
+//     altitude_accuracy REAL,
+//     heading REAL,
+//     speed REAL,
+//     timestamp INTEGER, #TIMESTAMP?
+//     uri TEXT
+
+// )'); }
+}
+function queryDB(tx){
+    tx.executeSql(
+        'SELECT * FROM Journeys', [], querySuccess, errorCB);
+}
+
+function getSQLResults(){
+    if(!db){
+        ("rejourneyDatabase", "1.0", "ReJourneyDB", 200000);
+    }
+        db.transaction(queryDB,errorCB);
+    }
+function querySuccess(tx, results){
+    console.log(results.rows.length);
+}
+// function getCurrentJourney(callback){
+//     db.transaction(function(transaction){
+//             transaction.executeSql('SELECT * FROM Journeys WHERE end IS NULL', [], function(transaction, results){  //The anonymous function doesn't run until after the .executeSql is done running.
+//                 var current_journey = results.rows[0]; //Assign asynchronously, the first journey found in the database that doesn't have and end to current_journey. DOES NOT RETURN current_journey!
+//                 callback(current_journey); //This is the call of the function that makes it run
+//             }, errorCB);
+//         }, errorCB, successCB);
+//     }
+
+
+// function addPhotoToDB(journey_id, photo_uri, position) {
+//     db.transaction(function(transaction){ //The SQL var is in place of populateDB.
+//         SQL = 'INSERT INTO Photos (journey_id, latitude, longitude, altitude, accuracy, altitude_accuracy, heading, speed, timestamp, uri)';
+//         SQL += "VALUES (" + journey_id + "," + position.latitude + "," + position.longitude + "," + position.accuracy + "," + position.altitude_accuracy + "," + position.heading + "," + position.speed + "," + position.timestamp + "," + photo_uri + ")";
+//     }, errorCB, successCB);
+// }
+
+// function addTrackToDB(journey_id, position) {
+//     db.transaction(function(transaction){ //The SQL var is in place of populateDB.
+//         SQL = 'INSERT INTO Tracks (journey_id, latitude, longitude, altitude, accuracy, altitude_accuracy, heading, speed, timestamp, uri)';
+//         SQL += "VALUES (" + journey_id + "," + position.latitude + "," + position.longitude + "," + position.accuracy + "," + position.altitude_accuracy + "," + position.heading + "," + position.speed + "," + position.timestamp + ")";
+//     }, errorCB, successCB);
+// }
+
+
+
+//************************************************** END PERSISTANCE ****************************************************************
+//************************************************** END PERSISTANCE ****************************************************************
+//************************************************** END PERSISTANCE ****************************************************************
+//************************************************** END PERSISTANCE ****************************************************************
+//************************************************** END PERSISTANCE ****************************************************************
 
 
 
